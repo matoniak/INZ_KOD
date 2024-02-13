@@ -32,7 +32,7 @@ function pokaz_Menu {
 "
 }
 
-while($true) {
+while ($true) {
     pokaz_menu -tytul 'MENU'
 
     try {
@@ -313,11 +313,11 @@ while($true) {
                 }
                 pause
             }
-                        6 {
+            6 {
                 $Comp = Read-Host 'Podaj nazwę komputera'
                 $user = Get-ADUser -Filter * -Properties PasswordLastSet, PasswordNeverExpires | 
-                        Where-Object {$_.Enabled -eq $true -and $_.PasswordNeverExpires -eq $false} | 
-                        Select-Object Name, PasswordLastSet
+                Where-Object { $_.Enabled -eq $true -and $_.PasswordNeverExpires -eq $false } | 
+                Select-Object Name, PasswordLastSet
 
                 $user | Format-Table -AutoSize
                 pause
@@ -363,7 +363,7 @@ while($true) {
             }
             13 {
                 $email = Read-Host 'Podaj adres e-mail'
-                $user = Get-ADUser -Filter {EmailAddress -eq $email} -Properties *
+                $user = Get-ADUser -Filter { EmailAddress -eq $email } -Properties *
                 $user
                 pause
             }
@@ -390,11 +390,13 @@ while($true) {
                 $compInfo | Format-Table -AutoSize
                 pause
             }
-            18 {
-                $xmlPath = Read-Host 'Podaj ścieżkę do pliku XML'
-                [xml]$xmlData = Get-Content $xmlPath
-                $xmlData
-                pause
+            18 
+            {
+                $Script:bazadanych = "C:\skrypt\praca_inzynierska\books.xml"
+                $lastModifiedDate = (Get-Item $bazadanych).LastWriteTime; 
+                Write-Host "Baza danych aktualna na dzien: $lastmodifieddate" 
+                [xml]$Script:bazaxml = Get-Content $bazadanych 
+                $bazaxml.catalog.book | select -first 30 | Format-Table
             }
             19 {
                 $path = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
@@ -406,20 +408,20 @@ while($true) {
                 pause
             }
             
-			20 {
-				$Comp = Read-Host 'Podaj nazwę komputera'
+            20 {
+                $Comp = Read-Host 'Podaj nazwę komputera'
                 Invoke-Command -ComputerName $Comp -ScriptBlock { Remove-Item C:\Windows\Temp\* -Recurse -Force }
                 Write-Host "Wyczyszczono folder tymczasowy na komputerze $Comp" -ForegroundColor Green
                 pause
-			}
-			21 {
+            }
+            21 {
                 $Comp = Read-Host 'Podaj nazwę komputera'
-                $diskSpace = Invoke-Command -ComputerName $Comp -ScriptBlock { Get-PSDrive C | Select-Object Used,Free }
+                $diskSpace = Invoke-Command -ComputerName $Comp -ScriptBlock { Get-PSDrive C | Select-Object Used, Free }
                 $diskSpace | Format-Table -AutoSize
                 pause
             
             }
-			98 {
+            98 {
                 Write-Host "Restart skryptu i jego aktualizacja"
                 # Tu umieść logikę restartu i aktualizacji skryptu
                 pause
