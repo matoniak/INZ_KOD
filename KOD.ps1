@@ -378,10 +378,47 @@ while ($true) {
                 pause
             }
             17 {
-                $Comp = Read-Host 'Podaj nazwe komputera'
-                $compInfo = Get-WmiObject -Class Win32_ComputerSystem -ComputerName $Comp
-                $compInfo | Format-Table -AutoSize
-                pause
+ 
+                $nazwakomputera = Read-Host 'Podaj nazwe komputera: '
+                $computerSystemClass = 'Win32_ComputerSystem'
+                $processorClass = 'Win32_Processor'
+                $memoryClass = 'Win32_PhysicalMemory'
+                $diskClass = 'Win32_DiskDrive'
+                $osClass = 'Win32_OperatingSystem'
+
+
+                $systemInfo = Get-WmiObject -Class $computerSystemClass -ComputerName $nazwakomputera
+                $cpuInfo = Get-WmiObject -Class $processorClass -ComputerName $nazwakomputera
+                $memoryInfo = Get-WmiObject -Class $memoryClass -ComputerName $nazwakomputera
+                $diskInfo = Get-WmiObject -Class $diskClass -ComputerName $nazwakomputera
+                $osInfo = Get-WmiObject -Class $osClass -ComputerName $nazwakomputera
+
+                Write-Host "Nazwa komputera: $($nazwakomputera)"
+                Write-Host "Model komputera: $($systemInfo.Manufacturer) $($systemInfo.Model)"
+                Write-Host "Procesor: $($cpuInfo.Name)"
+                Write-Host "Liczba rdzeni procesora: $($cpuInfo.NumberOfCores)"
+                Write-Host "Pamiec RAM: $($memoryInfo.Capacity)"
+                Write-Host "Typ dysku: $($diskInfo.MediaType )"
+                Write-Host "Pojemnosc dysku: $($diskInfo.Size )"
+                Write-Host "System operacyjny: $($osInfo.Caption)"
+                Write-Host "Wersja systemu operacyjnego: $($osInfo.Version)"
+
+                $outputFile = Read-Host 'Podaj sciezke do zapisu danych: '
+                $output = ''
+                $output += "Nazwa komputera: $($nazwakomputera)"
+                $output += "Model komputera: $($systemInfo.Manufacturer) $($systemInfo.Model)"
+                $output += "Procesor: $($cpuInfo.Name)"
+                $output += "Liczba rdzeni procesora: $($cpuInfo.NumberOfCores)"
+                $output += "Pamiec RAM: $($memoryInfo.Capacity)" 
+                $output += "Typ dysku: $($diskInfo.MediaType)" 
+                $output += "Pojemnosc dysku: $($diskInfo.Size)" 
+                $output += "System operacyjny: $($osInfo.Caption)"
+                
+                $output += "Wersja systemu operacyjnego: $($osInfo.Version)"
+                Set-Content $outputFile $output
+                
+                Write-Host "Informacje o komputerze zostały zapisane do pliku $outputFile."
+
             }
             18 {
                 $Script:bazadanych = "C:\skrypt\praca_inzynierska\books.xml"
@@ -477,7 +514,7 @@ while ($true) {
                 $endDate = Read-Host 'Podaj date koncową (opcjonalnie, format YYYY-MM-DD): '
                 $eventId = Read-Host 'Podaj EventID (opcjonalnie): '
 
-                # Sprawdzenie poprawności danych
+                # Sprawdzenie poprawnosci danych
                 if ($startDate -ne '' -and [DateTime]$startDate -gt [DateTime]::Now) {
                     Write-Error 'Data początkowa nie moze byc pozniejsza niz data dzisiejsza.'
                     Exit
