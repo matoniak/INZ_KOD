@@ -9,12 +9,12 @@ function pokaz_Menu {
 3. Programy i funkcje (Zdalna instalacja aplikacji Software Center z DSM) 
 4. Inwentaryzacja oprogramowania
 5. Zdalny restart komputera/Klienta
-6. Ostatnia zmiana hasła
+6. Ostatnia zmiana hasla
 7. Tworzenie folderu z uprawnieniami
 8. Status konta w DOMENIE
 9. Kto jest zalogowany
 10. Instalacje + z MC7
-11. Naprawa uszkodzonego profilu użytkownika
+11. Naprawa uszkodzonego profilu uzytkownika
 12. Ostatni Restart
 13. E-mail LOOK-UP
 14. Reset TPM stacjonarne
@@ -24,7 +24,9 @@ function pokaz_Menu {
 18. Ewidencja sprzetu / odczytywanie z pliku bazy XML
 19. Aktualizacja zmiennej srodowiskowej PATH
 20. Czyszczenie folderu tymczasowego
-21. Sprawdzanie dostępności przestrzeni dyskowej
+21. Sprawdzanie dostepnosci przestrzeni dyskowej
+22. Zdalne zarzadzanie serwisami
+23. Zdalny dostep do dziennika zdarzen
 98. Restart skryptu i jego aktualizacja
 
 
@@ -39,18 +41,18 @@ while ($true) {
         [int]$wybor = Read-Host "Prosze o wybranie numeru aby przejsc do funkcji"
         switch ($wybor) {
             1 {
-                # Skrypt służący do sprawdzenia dostępności maszyny w sieci
-                # Do jego działania potrzebujemy HOSTNAME komputera który chcemy sprawdzić
+                # Skrypt sluzacy do sprawdzenia dostepnosci maszyny w sieci
+                # Do jego dzialania potrzebujemy HOSTNAME komputera ktory chcemy sprawdzic
                 $nazwakomputera = read-host 'nazwa komputera'
                 if (Test-Connection $nazwakomputera -Count 1 -Quiet) {
                     Test-Connection $nazwakomputera
                 }
-                else { write-host "Terminal nie dostępny w sieci" }
+                else { write-host "Terminal nie dostepny w sieci" }
  
             }
             2 {
-                # Skrypt do zdalnego zarządzania zainstalowanymi aplikacjami
-                # Parametrami do uruchomienia są HOSTNAME oraz nazwa usuwanej aplikacji
+                # Skrypt do zdalnego zarzadzania zainstalowanymi aplikacjami
+                # Parametrami do uruchomienia sa HOSTNAME oraz nazwa usuwanej aplikacji
                 $usuwanie =
                 {
                     Param(                
@@ -308,13 +310,13 @@ while ($true) {
                 }
 
                 else {
-                    Write-Host 'Maszyna jest niedostępna w sieci.'
+                    Write-Host 'Maszyna jest niedostepna w sieci.'
                     pause
                 }
                 pause
             }
             6 {
-                $Comp = Read-Host 'Podaj nazwę komputera'
+                $Comp = Read-Host 'Podaj nazwe komputera'
                 $user = Get-ADUser -Filter * -Properties PasswordLastSet, PasswordNeverExpires | 
                 Where-Object { $_.Enabled -eq $true -and $_.PasswordNeverExpires -eq $false } | 
                 Select-Object Name, PasswordLastSet
@@ -323,8 +325,8 @@ while ($true) {
                 pause
             }
             7 {
-                $folderPath = Read-Host 'Podaj ścieżkę do utworzenia folderu'
-                $permission = Read-Host 'Podaj nazwę użytkownika/grupy dla nadania uprawnień (np. DOMAIN\User)'
+                $folderPath = Read-Host 'Podaj sciezke do utworzenia folderu'
+                $permission = Read-Host 'Podaj nazwe uzytkownika/grupy dla nadania uprawnien (np. DOMAIN\User)'
                 New-Item $folderPath -type directory
                 $acl = Get-Acl $folderPath
                 $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($permission, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
@@ -334,29 +336,29 @@ while ($true) {
                 pause
             }
             8 {
-                $user = Read-Host 'Podaj nazwę użytkownika'
+                $user = Read-Host 'Podaj nazwe uzytkownika'
                 $userInfo = Get-ADUser $user -Properties *
                 $userInfo.Enabled
                 pause
             }
             9 {
-                $Comp = Read-Host 'Podaj nazwę komputera'
+                $Comp = Read-Host 'Podaj nazwe komputera'
                 $loggedOnUser = Get-WmiObject -Class Win32_ComputerSystem -ComputerName $Comp | Select-Object UserName
                 $loggedOnUser
                 pause
             }
             10 {
-                # Tu umieść skrypt dla instalacji z MC7
+                # Tu umiesc skrypt dla instalacji z MC7
                 Write-Host "Funkcja w budowie"
                 pause
             }
             11 {
-                # Tu umieść skrypt dla naprawy uszkodzonego profilu użytkownika
+                # Tu umiesc skrypt dla naprawy uszkodzonego profilu uzytkownika
                 Write-Host "Funkcja w budowie"
                 pause
             }
             12 {
-                $Comp = Read-Host 'Podaj nazwę komputera'
+                $Comp = Read-Host 'Podaj nazwe komputera'
                 $lastBootUpTime = Get-WmiObject -Class Win32_OperatingSystem -ComputerName $Comp | Select-Object LastBootUpTime
                 $lastBootUpTime
                 pause
@@ -368,30 +370,29 @@ while ($true) {
                 pause
             }
             14 {
-                # Tu umieść skrypt do resetu TPM dla komputerów stacjonarnych
+                # Tu umiesc skrypt do resetu TPM dla komputerow stacjonarnych
                 Write-Host "Funkcja w budowie"
                 pause
             }
             15 {
-                $Comp = Read-Host 'Podaj nazwę komputera'
-                # Przykład dostępu do danych w AppData
+                $Comp = Read-Host 'Podaj nazwe komputera'
+                # Przyklad dostepu do danych w AppData
                 Invoke-Command -ComputerName $Comp -ScriptBlock { Get-ChildItem -Path C:\Users\*\AppData -Recurse }
-                # Dostęp do ProgramData analogicznie
+                # Dostep do ProgramData analogicznie
                 pause
             }
             16 {
-                # Skrypt wysyłający e-mail w przypadku braku logowania na sprzęt
+                # Skrypt wysylajacy e-mail w przypadku braku logowania na sprzet
                 Write-Host "Funkcja w budowie"
                 pause
             }
             17 {
-                $Comp = Read-Host 'Podaj nazwę komputera'
+                $Comp = Read-Host 'Podaj nazwe komputera'
                 $compInfo = Get-WmiObject -Class Win32_ComputerSystem -ComputerName $Comp
                 $compInfo | Format-Table -AutoSize
                 pause
             }
-            18 
-            {
+            18 {
                 $Script:bazadanych = "C:\skrypt\praca_inzynierska\books.xml"
                 $lastModifiedDate = (Get-Item $bazadanych).LastWriteTime; 
                 Write-Host "Baza danych aktualna na dzien: $lastmodifieddate" 
@@ -400,30 +401,141 @@ while ($true) {
             }
             19 {
                 $path = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
-                Write-Host "Aktualna ścieżka PATH: $path"
-                $newPath = Read-Host 'Podaj nową ścieżkę do dodania'
+                Write-Host "Aktualna sciezka PATH: $path"
+                $newPath = Read-Host 'Podaj nowa sciezke do dodania'
                 $newPath = $path + ';' + $newPath
                 [Environment]::SetEnvironmentVariable('PATH', $newPath, 'Machine')
-                Write-Host "Zaktualizowano ścieżkę PATH"
+                Write-Host "Zaktualizowano sciezke PATH"
                 pause
             }
             
             20 {
-                $Comp = Read-Host 'Podaj nazwę komputera'
+                $Comp = Read-Host 'Podaj nazwe komputera'
                 Invoke-Command -ComputerName $Comp -ScriptBlock { Remove-Item C:\Windows\Temp\* -Recurse -Force }
                 Write-Host "Wyczyszczono folder tymczasowy na komputerze $Comp" -ForegroundColor Green
                 pause
             }
             21 {
-                $Comp = Read-Host 'Podaj nazwę komputera'
+                $Comp = Read-Host 'Podaj nazwe komputera'
                 $diskSpace = Invoke-Command -ComputerName $Comp -ScriptBlock { Get-PSDrive C | Select-Object Used, Free }
                 $diskSpace | Format-Table -AutoSize
                 pause
             
             }
+            22 {
+                $computerName = Read-Host "Podaj nazwe komputera zdalnego:"     
+                while ($true) {
+                    Write-Host "Wybierz akcje:"
+                    Write-Host "1 - Wyswietl liste uslug"
+                    Write-Host "2 - Zatrzymaj usluge"
+                    Write-Host "3 - Wznow usluge"
+                    Write-Host "4 - Uruchom usluge"
+                    Write-Host "5 - Zmien typ uruchomienia uslugi"
+                    Write-Host "6 - Wyjdz"
+
+                    $choice = Read-Host "Podaj numer akcji (1-6)"
+
+                    switch ($choice) {
+                        "1" {
+                            Get-Service -ComputerName $computerName | Format-Table -AutoSize
+                        }
+                        "2" {
+                            $serviceName = Read-Host "Podaj nazwe uslugi do zatrzymania:"
+                            Stop-Service -ComputerName $computerName -Name $serviceName
+                        }
+                        "3" {
+                            $serviceName = Read-Host "Podaj nazwe uslugi do wznowienia:"
+                            Resume-Service -ComputerName $computerName -Name $serviceName
+                        }
+                        "4" {
+                            $serviceName = Read-Host "Podaj nazwe uslugi do uruchomienia:"
+                            Start-Service -ComputerName $computerName -Name $serviceName
+                        }
+                        "5" {
+                            $serviceName = Read-Host "Podaj nazwe uslugi do zmiany typu uruchomienia:"
+                            $startupType = Read-Host "Podaj typ uruchomienia (Automatyczny, Reczny, Automatyczny (opozniony)):"
+                            Set-Service -ComputerName $computerName -Name $serviceName -StartupType $startupType
+                        }
+                        "6" {
+                            break
+                        }
+                        default {
+                            Write-Host "Nieprawidlowy wybor. Wybierz jeszcze raz." -ForegroundColor Green
+                        }
+                    }
+                }
+                Write-Host "Operacja zakonczona."
+                pause
+            }
+            23 {
+                $category = ''
+                $source = ''
+                $errorLevel = ''
+                $startDate = ''
+                $endDate = ''
+                $eventId = ''
+
+                # Pobieranie danych od uzytkownika
+                while ($category -eq '') {
+                    $category = Read-Host 'Podaj kategorie zdarzen: '
+                }
+
+                $source = Read-Host 'Podaj zrodlo zdarzenia (opcjonalnie): '
+                $errorLevel = Read-Host 'Podaj rodzaj bledu (opcjonalnie): '
+                $startDate = Read-Host 'Podaj date początkową (opcjonalnie, format YYYY-MM-DD): '
+                $endDate = Read-Host 'Podaj date koncową (opcjonalnie, format YYYY-MM-DD): '
+                $eventId = Read-Host 'Podaj EventID (opcjonalnie): '
+
+                # Sprawdzenie poprawności danych
+                if ($startDate -ne '' -and [DateTime]$startDate -gt [DateTime]::Now) {
+                    Write-Error 'Data początkowa nie moze byc pozniejsza niz data dzisiejsza.'
+                    Exit
+                }
+
+                if ($endDate -ne '' -and [DateTime]$endDate -gt [DateTime]::Now) {
+                    Write-Error 'Data koncowa nie moze byc pozniejsza niz data dzisiejsza.'
+                    Exit
+                }
+
+                if ($startDate -ne '' -and $endDate -ne '' -and [DateTime]$startDate -gt [DateTime]$endDate) {
+                    Write-Error 'Data początkowa nie moze byc pozniejsza niz data koncowa.'
+                    Exit
+                }
+                if ($source -ne '') {
+                    $source = '-Source ' + $source;
+                }
+                if ($errorLevel -ne '') {
+                    $errorLevel = "-ErrorLevel " + $errorLevel;
+                }
+                if ($startDate -ne '' ) {
+                    $startDate = "-StartTime " + $startDate;
+                }
+                if ($endDate -ne '' ) {
+                    $endDate = "-EndTime " + $endDate;
+                }
+                if ($eventId -ne '' ) {
+                    $eventId = "-EventId " + $eventId;
+                }
+                $computerName = 'NazwaKomputera'
+                $events = Get-EventLog  -LogName ($category + $source + $errorLevel + $startDate + $endDate + $eventId)
+                if ($events -ne $null) {
+                    foreach ($event in $events) {
+                        Write-Host "`nData: $($event.TimeGenerated)"
+                        Write-Host "`nZrodlo: $($event.Source)"
+                        Write-Host "`nKategoria: $($event.Category)"
+                        Write-Host "`nRodzaj bledu: $($event.EntryType)"
+                        Write-Host "`nEventID: $($event.EventId)"
+                        Write-Host "`nOpis: $($event.Message)"
+                        Write-Host "----"
+                    }
+                }
+                else {
+                    Write-Host 'Brak wynikow.'
+                }
+
+            }
             98 {
                 Write-Host "Restart skryptu i jego aktualizacja"
-                # Tu umieść logikę restartu i aktualizacji skryptu
                 pause
             }
             99 {
