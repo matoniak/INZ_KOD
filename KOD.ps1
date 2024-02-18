@@ -323,14 +323,11 @@ function Restart {
 
 Restart
 
-<<<<<<< Updated upstream
                 else {
                     Write-Host 'Maszyna jest niedostepna w sieci.'
                     pause
                 }
                 pause
-=======
->>>>>>> Stashed changes
             }
             6 {
                 $Comp = Read-Host 'Podaj nazwe komputera'
@@ -486,14 +483,8 @@ pause
                 Write-Host "Informacje o komputerze zostały zapisane do pliku $outputFile."
 
             }
-<<<<<<< Updated upstream
             18 {
                 $Script:bazadanych = "C:\skrypt\praca_inzynierska\books.xml"
-=======
-            18 
-            {
-                $Script:bazadanych = "test.xml"
->>>>>>> Stashed changes
                 $lastModifiedDate = (Get-Item $bazadanych).LastWriteTime; 
                 Write-Host "Baza danych aktualna na dzien: $lastmodifieddate" 
                 [xml]$Script:bazaxml = Get-Content $bazadanych 
@@ -522,7 +513,6 @@ pause
                 pause
             
             }
-<<<<<<< Updated upstream
             22 {
                 $computerName = Read-Host "Podaj nazwe komputera zdalnego:"     
                 while ($true) {
@@ -567,30 +557,6 @@ pause
                 }
                 Write-Host "Operacja zakonczona."
                 pause
-=======
-            98 {
-                function informacja {
-                    Write-Host -ForegroundColor Green -BackgroundColor Black "### Aktualizacja i restart skryptu ###"
-                }
-                
-                function kopiowanie {
-                    # Lista komputerów, na które zostanie skopiowany skrypt
-                    Copy-Item "\\komp\c$\dane\skrypt\all.ps1" -Destination "\\komputer1\c$\dane\P1" 
-                    Copy-Item "\\komp\c$\dane\skrypt\all.ps1" -Destination "\\komputer2\c$\dane\P2"
-                    Write-Host -ForegroundColor Green -BackgroundColor Black "Skopiowano... wykonuję restart skryptu"
-                }
-                
-                function update_skryptu {
-                    Write-Host -ForegroundColor Green -BackgroundColor Black $MyInvocation.MyCommand.Path
-                    Clear-Host
-                    powershell.exe $MyInvocation.MyCommand.Path
-                }
-                
-                informacja
-                kopiowanie
-                update_skryptu
-                
->>>>>>> Stashed changes
             }
             23 {
                 $category = ''
