@@ -627,7 +627,6 @@ pause
             }
             98 {
                 
-POPRAWA CHAT
 
 function informacja {
     Write-Host -ForegroundColor Green -BackgroundColor Black "### Aktualizacja i restart skryptu ###"
