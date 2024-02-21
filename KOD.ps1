@@ -53,71 +53,62 @@ while ($true) {
             2 {
                 # Skrypt do zdalnego zarzadzania zainstalowanymi aplikacjami
                 # Parametrami do uruchomienia sa HOSTNAME oraz nazwa usuwanej aplikacji
-                $usuwanie =
-                {
-                    Param(                
-                        $nazwakomputera, $cochcesz
-                    )
-       
-                    Process {        
-                        Try {            
-                            $javaVer = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall `
-                            | Get-ItemProperty | Where-Object { $_.DisplayName -match "$cochcesz" } | Select-Object -Property DisplayName, UninstallString
-
-                            ForEach ($ver in $javaVer) {
-                                If ($ver.UninstallString) {
-                                    $uninst = $ver.UninstallString
-                                    & cmd /c $uninst /quiet /norestart
+                function usuwanie_aplikacji {
+                    $nazwakomputera = Read-Host "Podaj nazwę komputera"
+                
+                    try {
+                        $registryPath = "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+                        $key = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine, $nazwakomputera)
+                        $subkeys = $key.OpenSubKey($registryPath).GetSubKeyNames()
+                
+                        if ($subkeys) {
+                            Write-Host -ForegroundColor Cyan -BackgroundColor Black "`nLista aplikacji na komputerze $($nazwakomputera):"
+                            $applications = @()
+                            foreach ($subkey in $subkeys) {
+                                $programName = $key.OpenSubKey("$registryPath\$subkey").GetValue("DisplayName")
+                                if ($programName -ne $null) {
+                                    $applications += $programName
+                                    Write-Host -ForegroundColor Cyan -BackgroundColor Black $programName
                                 }
-
                             }
-       
+                            $cochcesz = Read-Host "Podaj część nazwy aplikacji do usunięcia"
+                            $foundApplications = $applications | Where-Object { $_ -like "*$cochcesz*" }
+                            if ($foundApplications.Count -gt 0) {
+                                Write-Host "Znalezione aplikacje:"
+                                $foundApplications | ForEach-Object { Write-Host $_ }
+                                $toRemove = Read-Host "Wybierz aplikację do usunięcia z powyższej listy"
+                                $uninstallKey = $key.OpenSubKey($registryPath)            
+                                $subkeyName = $uninstallKey.GetSubKeyNames() | Where-Object { $uninstallKey.OpenSubKey($_).GetValue("DisplayName") -eq $toRemove }
+                                $uninstallString = $uninstallKey.OpenSubKey($subkeyName).GetValue("UninstallString")
+                
+                                if ($uninstallString) {
+                                    Write-Host "Uninstall String: $uninstallString"
+                                    $result = Invoke-Command -ComputerName $nazwakomputera -ScriptBlock {
+                                        Start-Process -FilePath "$using:uninstallString" -ArgumentList "/quiet", "/norestart" -Wait
+                                        return $?
+                                    }
+                                    if ($result) {
+                                        Write-Host -ForegroundColor Cyan -BackgroundColor Black "`nAplikacja $toRemove została usunięta."
+                                    } else {
+                                        Write-Host -ForegroundColor Cyan -BackgroundColor Black "`nNie udało się usunąć aplikacji $toRemove."
+                                    }
+                                } else {
+                                    Write-Host -ForegroundColor Cyan -BackgroundColor Black "`nNie udało się odnaleźć lub usunąć aplikacji $toRemove."
+                                }
+                            } else {
+                                Write-Host -ForegroundColor Cyan -BackgroundColor Black "`nPodana część nazwy aplikacji nie znajduje się na liście."
+                            }
+                        } else {
+                            Write-Host -ForegroundColor Cyan -BackgroundColor Black "`nNie można uzyskać listy aplikacji na komputerze $($nazwakomputera)."
                         }
-                        Catch [system.exception] {
-                            Write-Host -ForegroundColor White "An exception has occured while processing the file : " $listItem.Url
-                            Write-Host -ForegroundColor Red $Error[0]
-                            return;
-                        }          
+                    } catch {
+                        Write-Host -ForegroundColor Cyan -BackgroundColor Black "Wystąpił błąd podczas pobierania listy aplikacji."
+                        Write-Host -ForegroundColor Cyan -BackgroundColor Black "Błąd: $_"
                     }
                 }
-                #
-                #Invoke-Command -computername $nazwakomputera -scriptblock $usuwanie
-                function uninstallApp {
-                    Write-Host "Removing $cochcesz"
-                    #$app=Get-WmiObject -Class Win32_Product -Filter "Name like 'CONTMAN Scan%%'"
-                    Try {
-                        $cochcesz = Write-Host "co chcesz usunac"
-                        $app = Get-wmiobject -class win32_product -computername $nazwakomputera -filter "name like '$cochcesz%%'"
-                        $app.Uninstall()
-                        Write-Host "Existing version of $cochcesz removed."
-                    }
-                    Catch [system.exception] {
-                        Write-Host -ForegroundColor White "An exception has occured while processing the file : " $listItem.Url
-                        Write-Host -ForegroundColor Red $Error[0]
-                        WriteToLog "Blad usuniecia"          
-                    }
-                }
-
-                $cochcesz = Read-Host "co chcesz usunac: "
-                $CurDate = (Get-Date).ToString("yyyy-MM-dd")
-                $LogFile = "$env:temp\CONTMAN_SCAN_install-$sCurDate.log"
-
-                $nazwakomputera = Read-Host -Prompt 'HOSTNAME '
-                if (Test-Connection $nazwakomputera -Count 1 -Quiet) {
-                    Write-Host('###########################################')
-                    Write-Host("Machine: $nazwakomputera jest online." )
-                    Write-Host('###########################################')
-                    if ($app = Get-wmiobject -class win32_product -computername $nazwakomputera -filter "name like '$cochcesz%%'") {
-                        $app.Uninstall()
-                        Write-Host "Istniejaca wersja $cochcesz zostala usunieta."
-                    }
-                    else {
-                        Write-Host "$cochcesz nie znaleziono. Wracam"
-                    }
-                }
-                else {
-                    write-host "Urzadzenie nie dostepne w sieci"
-                }
+                
+                usuwanie_aplikacji
+                
             }
             3 {
                 write-host 'skrypt do zdalnej instalacji SCCM'
@@ -302,12 +293,35 @@ while ($true) {
                 }
             }
             5 {
-                $Comp = Read-Host 'Prosze o podanie nazwy komputera'
-                Write-Host $Comp
+                function Informacja {
+    Write-Host -ForegroundColor Yellow 'Zdalny restart maszyny'
+}
 
-                if (Test-Connection $Comp -Count 1 -Quiet) {
-                    shutdown -r -m \\$Comp -t 0
-                }
+function Restart {
+    $nazwakomputera = Read-Host "Podaj nazwę komputera"
+    
+    if ($nazwakomputera -ne $null -and $nazwakomputera -ne "") {
+        Informacja
+        Write-Host "Wysyłanie komendy restartu do $nazwakomputera"
+        try {
+            $pingable = Test-Connection $nazwakomputera -Count 1 -Quiet
+            if ($pingable) {
+                shutdown -r -m \\$nazwakomputera -t 0
+                Write-Host "Polecenie restartu zostało wysłane do $nazwakomputera"
+            } else {
+                Write-Host "Komputer $nazwakomputera jest niedostępny w sieci."
+            }
+        }
+        catch {
+            Write-Host "Wystąpił błąd podczas restartowania komputera: $_"
+        }
+    }
+    else {
+        Write-Host "Nazwa komputera nie może być pusta."
+    }
+}
+
+Restart
 
                 else {
                     Write-Host 'Maszyna jest niedostepna w sieci.'
@@ -343,9 +357,47 @@ while ($true) {
             }
             9 {
                 $Comp = Read-Host 'Podaj nazwe komputera'
-                $loggedOnUser = Get-WmiObject -Class Win32_ComputerSystem -ComputerName $Comp | Select-Object UserName
-                $loggedOnUser
-                pause
+
+                # Pobranie informacji o sesji przy użyciu polecenia qwinsta
+                $sessions = Invoke-Command -ComputerName $Comp -ScriptBlock {
+                    qwinsta
+                }
+                
+                # Przetworzenie wyniku polecenia qwinsta, aby uzyskać informacje o zalogowanym użytkowniku
+                $loggedOnUsers = $sessions | Where-Object { $_ -match '\s\d+\s+Active' } | ForEach-Object {
+                    $fields = $_ -split '\s+'
+                    if ($fields[1] -ne 'console') {
+                        $fields[2]
+                    }
+                }
+                
+                # Pobranie informacji o zalogowanych użytkownikach przy użyciu modułu ActiveDirectory
+                $adLoggedOnUsers = Invoke-Command -ComputerName $Comp -ScriptBlock {
+                    $usernames = @()
+                    $sessions = Get-WmiObject -Class Win32_ComputerSystem -ComputerName $using:Comp | Select-Object -ExpandProperty UserName
+                    foreach ($session in $sessions) {
+                        $usernames += $session.Split('\')[-1]
+                    }
+                    $usernames
+                }
+                
+                # Wyświetlenie zalogowanych użytkowników
+                Write-Host "Zalogowani użytkownicy na komputerze $($Comp):"
+                if ($loggedOnUsers) {
+                    $loggedOnUsers
+                } else {
+                    Write-Host "Brak zalogowanych użytkowników."
+                }
+                
+                # Wyświetlenie dodatkowych informacji z modułu Active Directory
+                Write-Host "Dodatkowe informacje o zalogowanych użytkownikach (Active Directory):"
+                if ($adLoggedOnUsers) {
+                    $adLoggedOnUsers
+                } else {
+                    Write-Host "Brak dodatkowych informacji o zalogowanych użytkownikach."
+                }
+                
+
             }
             10 {
                 # Tu umiesc skrypt dla instalacji z MC7
@@ -359,9 +411,11 @@ while ($true) {
             }
             12 {
                 $Comp = Read-Host 'Podaj nazwe komputera'
-                $lastBootUpTime = Get-WmiObject -Class Win32_OperatingSystem -ComputerName $Comp | Select-Object LastBootUpTime
-                $lastBootUpTime
-                pause
+$lastBootUpTime = Get-WmiObject -Class Win32_OperatingSystem -ComputerName $Comp | Select-Object -ExpandProperty LastBootUpTime
+$formattedLastBootUpTime = [Management.ManagementDateTimeConverter]::ToDateTime($lastBootUpTime).ToString("yyyy-MM-dd HH:mm:ss")
+Write-Host "Data ostatniego restartu komputera ${Comp}: ${formattedLastBootUpTime}"
+pause
+
             }
             13 {
                 $email = Read-Host 'Podaj adres e-mail'
@@ -479,7 +533,7 @@ while ($true) {
                 $lastModifiedDate = (Get-Item $bazadanych).LastWriteTime; 
                 Write-Host "Baza danych aktualna na dzien: $lastmodifieddate" 
                 [xml]$Script:bazaxml = Get-Content $bazadanych 
-                $bazaxml.catalog.book | select -first 30 | Format-Table
+                $bazaxml.sprzet.komputer | select -first 30 | Format-Table
             }
             19 {
                 $path = [Environment]::GetEnvironmentVariable('PATH', 'Machine')
@@ -617,8 +671,29 @@ while ($true) {
 
             }
             98 {
-                Write-Host "Restart skryptu i jego aktualizacja"
-                pause
+                
+
+function informacja {
+    Write-Host -ForegroundColor Green -BackgroundColor Black "### Aktualizacja i restart skryptu ###"
+}
+
+function kopiowanie {
+    # Lista komputerów, na które zostanie skopiowany skrypt
+    Copy-Item "\\komp\c$\dane\skrypt\all.ps1" -Destination "\\komputer1\c$\dane\P1" 
+    Copy-Item "\\komp\c$\dane\skrypt\all.ps1" -Destination "\\komputer2\c$\dane\P2"
+    Write-Host -ForegroundColor Green -BackgroundColor Black "Skopiowano... wykonuję restart skryptu"
+}
+
+function update_skryptu {
+    Write-Host -ForegroundColor Green -BackgroundColor Black $MyInvocation.MyCommand.Path
+    Clear-Host
+    powershell.exe $MyInvocation.MyCommand.Path
+}
+
+informacja
+kopiowanie
+update_skryptu
+
             }
             99 {
                 Exit;
