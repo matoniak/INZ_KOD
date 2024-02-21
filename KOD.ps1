@@ -411,22 +411,67 @@ while ($true) {
                 Write-Host "Pojemnosc dysku: $($diskInfo.Size )"
                 Write-Host "System operacyjny: $($osInfo.Caption)"
                 Write-Host "Wersja systemu operacyjnego: $($osInfo.Version)"
+                Write-Host "Wybierz opcje:"
+                Write-Host "1. Zapisz do pliku"
+                Write-Host "2. Wyslij JSON na pod url"
+                Write-Host "3. Wroc do menu"
+                [int]$opcja = Read-Host "Wybierz opcje:"
+                switch ($opcja) {
+                    1 {
+                        $outputFile = Read-Host 'Podaj sciezke do zapisu danych: '
+                        $output = ''
+                        $output += "Nazwa komputera: $($nazwakomputera)"
+                        $output += "Model komputera: $($systemInfo.Manufacturer) $($systemInfo.Model)"
+                        $output += "Procesor: $($cpuInfo.Name)"
+                        $output += "Liczba rdzeni procesora: $($cpuInfo.NumberOfCores)"
+                        $output += "Pamiec RAM: $($memoryInfo.Capacity)" 
+                        $output += "Typ dysku: $($diskInfo.MediaType)" 
+                        $output += "Pojemnosc dysku: $($diskInfo.Size)" 
+                        $output += "System operacyjny: $($osInfo.Caption)"
+                        
+                        $output += "Wersja systemu operacyjnego: $($osInfo.Version)"
+                        Set-Content $outputFile $output
+                        
+                        Write-Host "Informacje o komputerze zostaly zapisane do pliku $outputFile."
+                    }
+                    2 {
+  
+                        $webServiceUrl = Read-Host 'Podaj link do uslugi webowej: '
+                        $computerSystemClass = 'Win32_ComputerSystem'
+                        $processorClass = 'Win32_Processor'
+                        $memoryClass = 'Win32_PhysicalMemory'
+                        $diskClass = 'Win32_DiskDrive'
+                        $osClass = 'Win32_OperatingSystem'
+                        $systemInfo = Get-WmiObject -Class $computerSystemClass
+                        $cpuInfo = Get-WmiObject -Class $processorClass
+                        $memoryInfo = Get-WmiObject -Class $memoryClass
+                        $diskInfo = Get-WmiObject -Class $diskClass
 
-                $outputFile = Read-Host 'Podaj sciezke do zapisu danych: '
-                $output = ''
-                $output += "Nazwa komputera: $($nazwakomputera)"
-                $output += "Model komputera: $($systemInfo.Manufacturer) $($systemInfo.Model)"
-                $output += "Procesor: $($cpuInfo.Name)"
-                $output += "Liczba rdzeni procesora: $($cpuInfo.NumberOfCores)"
-                $output += "Pamiec RAM: $($memoryInfo.Capacity)" 
-                $output += "Typ dysku: $($diskInfo.MediaType)" 
-                $output += "Pojemnosc dysku: $($diskInfo.Size)" 
-                $output += "System operacyjny: $($osInfo.Caption)"
-                
-                $output += "Wersja systemu operacyjnego: $($osInfo.Version)"
-                Set-Content $outputFile $output
-                
-                Write-Host "Informacje o komputerze zostały zapisane do pliku $outputFile."
+                        $osInfo = Get-WmiObject -Class $osClass
+                        $data = @{
+                            NazwaKomputera            = $systemInfo.Name
+                            ModelKomputera            = $($systemInfo.Manufacturer) + ' ' + $($systemInfo.Model)
+                            Procesor                  = $cpuInfo.Name
+                            LiczbaRdzeniProcesora     = $cpuInfo.NumberOfCores
+                            PamiecRAM                 = $($memoryInfo.Capacity)
+                            TypDysku                  = $diskInfo.MediaType
+                            PojemnoscDysku            = $($diskInfo.Size)
+                            SystemOperacyjny          = $osInfo.Caption
+                            WersjaSystemuOperacyjnego = $osInfo.Version
+                        }
+
+                        $jsonData = ConvertTo-Json $data -Compress
+                        Invoke-WebRequest -Uri $webServiceUrl -Method POST -Body $jsonData
+
+                        Write-Host "Dane zostaly wyslane do uslugi webowej."
+
+                    }
+                    3 {
+
+                    }
+
+                }
+               
 
             }
             18 {
