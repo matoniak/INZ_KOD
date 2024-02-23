@@ -400,9 +400,22 @@ Restart
 
             }
             10 {
-                # Tu umiesc skrypt dla instalacji z MC7
-                Write-Host "Funkcja w budowie"
-                pause
+                # Ścieżka do instalatora MC7
+$installerPath = "\\C:\Users\Administrator\Documents\Setup_FileViewPro_2024.exe"
+
+# Opcje instalatora (zakładając, że instalator MC7 akceptuje argumenty linii poleceń)
+$installOptions = "/quiet /norestart"
+
+# Uruchomienie instalatora z podanymi opcjami
+Start-Process -FilePath $installerPath -ArgumentList $installOptions -Wait
+
+# Sprawdzenie, czy instalacja się powiodła
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "Instalacja MC7 zakończona sukcesem."
+} else {
+    Write-Host "Instalacja MC7 nie powiodła się. Kod błędu: $LASTEXITCODE"
+}
+
             }
             11 {
                 # Tu umiesc skrypt dla naprawy uszkodzonego profilu uzytkownika
