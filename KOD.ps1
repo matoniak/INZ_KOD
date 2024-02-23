@@ -418,9 +418,25 @@ if ($LASTEXITCODE -eq 0) {
 
             }
             11 {
-                # Tu umiesc skrypt dla naprawy uszkodzonego profilu uzytkownika
-                Write-Host "Funkcja w budowie"
-                pause
+                # Zdefiniuj nazwę użytkownika uszkodzonego profilu
+$uszkodzonyUzytkownik = "Administrator"
+
+# Znajdź obiekt użytkownika w Active Directory
+$adUser = Get-ADUser -Filter {SamAccountName -eq $uszkodzonyUzytkownik}
+
+# Usuń profil użytkownika z komputera
+$komputer = "WIN-99DU8TMFIPN"
+Invoke-Command -ComputerName $komputer -ScriptBlock {
+    param($adUser)
+    $profilePath = "C:\Users\" + $adUser.SamAccountName
+    Remove-Item $profilePath -Recurse -Force
+} -ArgumentList $adUser
+
+# Opcjonalnie: Możesz chcieć zresetować niektóre ustawienia użytkownika w AD, na przykład profilePath, homeDirectory itp.
+Set-ADUser $adUser -ProfilePath $null -HomeDirectory $null
+
+Write-Host "Profil użytkownika $uszkodzonyUzytkownik został zresetowany."
+
             }
             12 {
                 $Comp = Read-Host 'Podaj nazwe komputera'
@@ -437,9 +453,29 @@ pause
                 pause
             }
             14 {
-                # Tu umiesc skrypt do resetu TPM dla komputerow stacjonarnych
-                Write-Host "Funkcja w budowie"
-                pause
+                # Definicja listy komputerów do resetowania TPM
+$listaKomputerow = @("Komputer1", "Komputer2")
+
+# Skrypt do wykonania na każdym komputerze
+$skrypt = {
+    try {
+        $tpmReady = Get-Tpm | Select-Object -ExpandProperty TpmReady
+        if ($tpmReady -eq $true) {
+            Initialize-Tpm -AllowClear -AllowPhysicalPresence
+            Write-Output "TPM przygotowany do resetowania. Wymagany restart i fizyczna akcja."
+        } else {
+            Write-Output "TPM nie jest gotowy do resetowania."
+        }
+    } catch {
+        Write-Output "Wystąpił błąd: $_"
+    }
+}
+
+# Wykonanie skryptu na liście komputerów
+foreach ($komputer in $listaKomputerow) {
+    Invoke-Command -ComputerName $komputer -ScriptBlock $skrypt -Credential (Get-Credential)
+}
+
             }
             15 {
                 $Comp = Read-Host 'Podaj nazwe komputera'
