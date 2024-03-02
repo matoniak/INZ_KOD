@@ -452,6 +452,7 @@ pause
                 $user
                 pause
             }
+
             14 {
                 # Definicja listy komputerów do resetowania TPM
 $listaKomputerow = @("Komputer1", "Komputer2")
@@ -486,7 +487,7 @@ foreach ($komputer in $listaKomputerow) {
             }
             16 {
                 # Skrypt wysylajacy e-mail w przypadku braku logowania na sprzet
-                function Informacje
+                Informacje
                 pause
             }
             17 {
