@@ -447,10 +447,57 @@ pause
 
             }
             13 {
-                $email = Read-Host 'Podaj adres e-mail'
-                $user = Get-ADUser -Filter { EmailAddress -eq $email } -Properties *
-                $user
-                pause
+                function Informacje {
+
+                    # Informacje
+                    $SEmailServer = "setphub.eur.mail.com"
+                    $Snazwakomputera = Read-Host "Proszę podać nazwę maszyny, której dotyczy e-mail"
+                    $Suzytkownik = Read-Host "Kto ostatnio używał komputera? (np. Jan Kowalski)"
+                    $Skog = Read-Host "Do kogo wysłać e-mail? (np. jan.kowalski@firms.com)"
+                    $Sprzełożony = Read-Host "E-mail przełożonego (np. jan.kowalski@firma.com) ZOSTAW PUSTE Jeżeli nie chcesz"
+                
+                    # Pobieranie nazwy użytkownika
+                    $Sfrom = (Get-NetUser "SenUserRame" /domain | Select-Object -Property "SamAccountName").SamAccountName
+                
+                    # Tworzenie wiadomości e-mail
+                    $Semail1 = $Sfrom -replace "SenUserRame", $Suzytkownik
+                    $Semail2 = $Semail1 -replace "@", ""
+                    $Semail3 = $Semail2 + "@firma.com"
+                
+                    # Styl
+                    $Styl = "margin: 10px; font-family: Calibri; font-size: 12pt; color: black; padding-left: 30px;"
+                
+                    # Temat wiadomości
+                    $Temat = "Urządzenie $Snazwakomputera zbyt długo nie odpowiada w sieci!"
+                
+                    # Treść wiadomości
+                    $Tresc = @"
+                    <p style="$Styl"><strong>Otrzymalismy informacje, że urządzenie $Snazwakomputera 
+                    nie odpowiada w sieci od dłuższego czasu.</strong></p>
+                    <p style="$Styl">&nbsp;</p>
+                    <p style="$Styl">W związku z powyższym, prosimy o sprawdzenie 
+                    urządzenia i podjęcie odpowiednich kroków w celu rozwiązania problemu.</p>
+                    "@
+                
+                    # Wysyłanie wiadomości e-mail
+                    $MailParams = @{
+                        From = $Semail3
+                        To = $Skog
+                        Subject = $Temat
+                        Body = $Tresc
+                        SmtpServer = $SEmailServer
+                        BodyEncoding = [System.Text.UTF8Encoding]::UTF8
+                        UseSsl = $True
+                    }
+                
+                    Send-MailMessage @MailParams -encoding UTF8 -Bcc $Semail3 -Cc "do.kogo.cc@firma.com,$Sprzełożony"
+                
+                    # Komunikat o wysłaniu wiadomości
+                    Write-Host "E-mail został wysłany"
+                }
+                
+                # Wywołanie funkcji
+                Informacje
             }
             14 {
                 # Definicja listy komputerów do resetowania TPM
