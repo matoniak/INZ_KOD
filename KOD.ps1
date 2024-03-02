@@ -486,7 +486,7 @@ foreach ($komputer in $listaKomputerow) {
             }
             16 {
                 # Skrypt wysylajacy e-mail w przypadku braku logowania na sprzet
-                Write-Host "Funkcja w budowie"
+                function Informacje
                 pause
             }
             17 {
